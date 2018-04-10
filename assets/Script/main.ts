@@ -80,17 +80,17 @@ export default class MainScene extends cc.Component {
         this.initSelectedSafe();
     }
 
-    initSelectedSafe(){
+    initSelectedSafe() {
         this.selectedSafe = this.selectSafe();
     }
 
     callback(scrollview: cc.ScrollView, eventType: cc.ScrollView.EventType, customEventData) {
         if (eventType == cc.ScrollView.EventType.SCROLLING) {
 
-            var posInContent = this.convertCorrdinate(this.node, this.rootNode);
+            var posInContent = this.convertCorrdinate(this.node.position, this.node, this.rootNode);
             posInContent.x -= this.rootNode.width / 2;
             posInContent.y -= this.rootNode.height / 2;
-
+           
             this.initSelectedSafe();
 
             for (var i = 0; i < this.COUNT_VERTICAL; i++) {
@@ -104,19 +104,19 @@ export default class MainScene extends cc.Component {
             this.scrollToSelected();
         }
 
-        if(eventType == cc.ScrollView.EventType.BOUNCE_BOTTOM) {
+        if (eventType == cc.ScrollView.EventType.BOUNCE_BOTTOM) {
             console.log("BOUNCE_BOTTOM");
         }
 
-        if(eventType == cc.ScrollView.EventType.SCROLL_TO_BOTTOM) {
+        if (eventType == cc.ScrollView.EventType.SCROLL_TO_BOTTOM) {
             console.log("SCROLL_TO_BOTTOM");
         }
 
-        if(eventType == cc.ScrollView.EventType.AUTOSCROLL_ENDED_WITH_THRESHOLD) {
+        if (eventType == cc.ScrollView.EventType.AUTOSCROLL_ENDED_WITH_THRESHOLD) {
             console.log("AUTOSCROLL_ENDED_WITH_THRESHOLD");
         }
 
-        if(eventType == cc.ScrollView.EventType.SCROLL_ENDED) {
+        if (eventType == cc.ScrollView.EventType.SCROLL_ENDED) {
             console.log("SCROLL_ENDED");
         }
     }
@@ -128,14 +128,14 @@ export default class MainScene extends cc.Component {
     }
 
     selectSafe(): SafeObject {
-        var posInContent = this.convertCorrdinate(this.node, this.rootNode);
+        var posInContent = this.convertCorrdinate(this.node.position, this.node, this.rootNode);
         var centralNode = this.getNearestSafe(posInContent);
         return centralNode;
     }
 
 
-    convertCorrdinate(target: cc.Node, to: cc.Node): cc.Vec2 {
-        var pointGlob = target.convertToWorldSpace(target.position);
+    convertCorrdinate(position: cc.Vec2, target: cc.Node, to: cc.Node): cc.Vec2 {
+        var pointGlob = target.convertToWorldSpace(position);
         return to.convertToNodeSpace(pointGlob);
     }
 
