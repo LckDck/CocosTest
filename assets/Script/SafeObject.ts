@@ -8,7 +8,7 @@ export default class SafeObject extends cc.Component {
     middlePoint: cc.Vec2;
 
     BASE_WIDTH: number = 1080;
-    CONTENT_SIZE: number = 303;
+    CONTENT_SIZE: number;
 
 
     public updatePosition(parentPos: cc.Vec2) {
@@ -17,6 +17,7 @@ export default class SafeObject extends cc.Component {
         var ddist: number = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
         this.node.setScale(1 - ddist / 1200);
 
+        this.node.opacity = Math.floor((1 - ddist / 1200) * 255);
         //this.node.opacity = (ddist > 600) ? 0.2 * (600 - ddist) / (650 - 600) + 0.2 : 1.2 - ddist / 600;
         // var angle: number = Math.atan2(offsetX, offsetY); // угол, тоб потом определить по этому углу другое расстояние
         // var r: number = 160 * Math.atan(ddist * 5 * 2 / this.BASE_WIDTH); // искажение. это совпадение, что функция тоже атангенс.
@@ -31,7 +32,8 @@ export default class SafeObject extends cc.Component {
     //TODO getters setters?
     public gridPostion: cc.Vec2;
 
-    public initPosition(i: number, j: number, countX: number, countY: number) {
+    public initPosition(i: number, j: number, countX: number, countY: number, contentSize: number) {
+        this.CONTENT_SIZE = contentSize;
         this.gridPostion = new cc.Vec2(i, j);
         this.gridSize = new cc.Vec2(countX, countY);
         this.middlePoint = new cc.Vec2(Math.floor(countX / 2), Math.floor(countY / 2));

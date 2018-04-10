@@ -15,13 +15,14 @@ export default class MainScene extends cc.Component {
     COUNT_HORIZONTAL: number = 9;
     CONTENT_SIZE: number = 303;
 
-    safes: cc.Node[][] = [[], []];
+    safes: SafeObject[][] = [[], []];
 
     rootNode: cc.Node;
     visibleSize = cc.director.getVisibleSize();
-    a: cc.Node;
     scrollView: cc.ScrollView;
     startOffset: cc.Vec2;
+
+    selectedSafe: SafeObject;
 
     start() {
         var scrollNode = new cc.Node();
@@ -45,16 +46,12 @@ export default class MainScene extends cc.Component {
             this.safes[i] = [];
             for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
                 var prefab = cc.instantiate(this.safePrefab);
-                prefab.getComponent(SafeObject).initPosition(i, j, this.COUNT_HORIZONTAL, this.COUNT_VERTICAL);
+                var safeObject = prefab.getComponent(SafeObject);
+                safeObject.initPosition(i, j, this.COUNT_HORIZONTAL, this.COUNT_VERTICAL, this.CONTENT_SIZE);
                 this.rootNode.addChild(prefab);
-                this.safes[i][j] = prefab;
+                this.safes[i][j] = safeObject;
             }
         }
-
-
-        this.a = new cc.Node();
-        this.a.addChild(cc.instantiate(this.pointPrefab));
-        this.rootNode.addChild(this.a);
 
         //increase content size to be able to scroll to the corners
         this.rootNode.setContentSize(sizeX + this.visibleSize.width - this.CONTENT_SIZE, sizeY + this.visibleSize.height - this.CONTENT_SIZE);
@@ -68,14 +65,13 @@ export default class MainScene extends cc.Component {
         this.scrollView.brake = 1;
         this.scrollView.inertia = true;
         this.scrollView.bounceDuration = 0.1;
-        
+
         var scrollViewEventHandler = new cc.Component.EventHandler();
         //This node is the node to which your event handler code component belongs
-        scrollViewEventHandler.target = this.node; 
+        scrollViewEventHandler.target = this.node;
         //This is the code file name
         scrollViewEventHandler.component = "main";
         scrollViewEventHandler.handler = "callback";
-
         this.scrollView.scrollEvents.push(scrollViewEventHandler);
 
         var anchorNode = new cc.Node();
@@ -84,36 +80,37 @@ export default class MainScene extends cc.Component {
     }
 
 
+
     callback(scrollview: cc.ScrollView, eventType: cc.ScrollView.EventType, customEventData) {
         if (eventType == cc.ScrollView.EventType.SCROLLING) {
-            var posInContent = this.convertCorrdinate(this.node, this.rootNode);
-            var posX = posInContent.x - this.rootNode.width / 2;
-            var posY = posInContent.y - this.rootNode.height / 2;
-            posInContent.x = posX;
-            posInContent.y = posY;
 
-            var pos = this.selectSafe();
+            var posInContent = this.convertCorrdinate(this.node, this.rootNode);
+            posInContent.x -= this.rootNode.width / 2;
+            posInContent.y -= this.rootNode.height / 2;
+
+            this.selectedSafe = this.selectSafe();
 
             for (var i = 0; i < this.COUNT_VERTICAL; i++) {
                 for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
-                    this.safes[i][j].getComponent(SafeObject).updatePosition(posInContent);
+                    this.safes[i][j].updatePosition(posInContent);
                 }
             }
         }
 
         if (eventType == cc.ScrollView.EventType.TOUCH_UP) {
-            var posInContent = this.convertCorrdinate(this.node, this.rootNode);
-            var centralNode = this.getNearestSafe(posInContent);
-            var gridPosition = centralNode.getComponent(SafeObject).gridPostion;
-            var scrollTarget = new cc.Vec2(gridPosition.x * this.CONTENT_SIZE, (this.COUNT_VERTICAL - gridPosition.y - 1) * this.CONTENT_SIZE);
-            this.scrollView.scrollToOffset(scrollTarget, 0.5, true);
+            this.scrollToSelected();
         }
     }
 
-    selectSafe(): cc.Node {
+    scrollToSelected() {
+        var gridPosition = this.selectedSafe.gridPostion;
+        var scrollTarget = new cc.Vec2(gridPosition.x * this.CONTENT_SIZE, (this.COUNT_VERTICAL - gridPosition.y - 1) * this.CONTENT_SIZE);
+        this.scrollView.scrollToOffset(scrollTarget, 0.5, true);
+    }
+
+    selectSafe(): SafeObject {
         var posInContent = this.convertCorrdinate(this.node, this.rootNode);
         var centralNode = this.getNearestSafe(posInContent);
-        this.a.setPosition(centralNode.position);
         return centralNode;
     }
 
@@ -123,7 +120,7 @@ export default class MainScene extends cc.Component {
         return to.convertToNodeSpace(pointGlob);
     }
 
-    getNearestSafe(position: cc.Vec2): cc.Node {
+    getNearestSafe(position: cc.Vec2): SafeObject {
         var posX = position.x - this.visibleSize.width / 2 + this.CONTENT_SIZE / 2;
         var posY = position.y - this.visibleSize.height / 2 + this.CONTENT_SIZE / 2;
 
