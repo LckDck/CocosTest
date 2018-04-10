@@ -13,7 +13,7 @@ export default class MainScene extends cc.Component {
 
     COUNT_VERTICAL: number = 9;
     COUNT_HORIZONTAL: number = 9;
-    CONTENT_SIZE: number = 303;
+    CONTENT_SIZE: number = 180;
 
     safes: SafeObject[][] = [[], []];
 
@@ -77,9 +77,12 @@ export default class MainScene extends cc.Component {
         var anchorNode = new cc.Node();
         anchorNode.addChild(cc.instantiate(this.pointPrefab));
         this.node.addChild(anchorNode);
+        this.initSelectedSafe();
     }
 
-
+    initSelectedSafe(){
+        this.selectedSafe = this.selectSafe();
+    }
 
     callback(scrollview: cc.ScrollView, eventType: cc.ScrollView.EventType, customEventData) {
         if (eventType == cc.ScrollView.EventType.SCROLLING) {
@@ -88,7 +91,7 @@ export default class MainScene extends cc.Component {
             posInContent.x -= this.rootNode.width / 2;
             posInContent.y -= this.rootNode.height / 2;
 
-            this.selectedSafe = this.selectSafe();
+            this.initSelectedSafe();
 
             for (var i = 0; i < this.COUNT_VERTICAL; i++) {
                 for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
@@ -99,6 +102,22 @@ export default class MainScene extends cc.Component {
 
         if (eventType == cc.ScrollView.EventType.TOUCH_UP) {
             this.scrollToSelected();
+        }
+
+        if(eventType == cc.ScrollView.EventType.BOUNCE_BOTTOM) {
+            console.log("BOUNCE_BOTTOM");
+        }
+
+        if(eventType == cc.ScrollView.EventType.SCROLL_TO_BOTTOM) {
+            console.log("SCROLL_TO_BOTTOM");
+        }
+
+        if(eventType == cc.ScrollView.EventType.AUTOSCROLL_ENDED_WITH_THRESHOLD) {
+            console.log("AUTOSCROLL_ENDED_WITH_THRESHOLD");
+        }
+
+        if(eventType == cc.ScrollView.EventType.SCROLL_ENDED) {
+            console.log("SCROLL_ENDED");
         }
     }
 
