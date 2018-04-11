@@ -37,26 +37,14 @@ export default class MainScene extends cc.Component {
         maskNode.setContentSize(this.visibleSize);
         scrollNode.addChild(maskNode);
 
+        this.rootNode = this.initContent();
 
         var sizeX = this.COUNT_HORIZONTAL * this.CONTENT_SIZE;
         var sizeY = this.COUNT_VERTICAL * this.CONTENT_SIZE;
-
-        this.rootNode = new cc.Node();
-        for (var i = 0; i < this.COUNT_VERTICAL; i++) {
-            this.safes[i] = [];
-            for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
-                var prefab = cc.instantiate(this.safePrefab);
-                var safeObject = prefab.getComponent(SafeObject);
-                safeObject.initPosition(i, j, this.COUNT_HORIZONTAL, this.COUNT_VERTICAL, this.CONTENT_SIZE);
-                this.rootNode.addChild(prefab);
-                this.safes[i][j] = safeObject;
-            }
-        }
-
         //increase content size to be able to scroll to the corners
         this.rootNode.setContentSize(sizeX + this.visibleSize.width - this.CONTENT_SIZE, sizeY + this.visibleSize.height - this.CONTENT_SIZE);
-        maskNode.addChild(this.rootNode);
 
+        maskNode.addChild(this.rootNode);
 
         this.scrollView = scrollNode.addComponent(cc.ScrollView);
         this.scrollView.horizontal = true;
@@ -74,30 +62,40 @@ export default class MainScene extends cc.Component {
         scrollViewEventHandler.handler = "callback";
         this.scrollView.scrollEvents.push(scrollViewEventHandler);
 
+        this.initSelectedSafe();
+
+        this.addAnchor();
+    }
+
+    private addAnchor() {
         var anchorNode = new cc.Node();
         anchorNode.addChild(cc.instantiate(this.pointPrefab));
         this.node.addChild(anchorNode);
-        this.initSelectedSafe();
     }
 
-    initSelectedSafe() {
+    private initSelectedSafe() {
         this.selectedSafe = this.selectSafe();
     }
 
-    callback(scrollview: cc.ScrollView, eventType: cc.ScrollView.EventType, customEventData) {
-        if (eventType == cc.ScrollView.EventType.SCROLLING) {
 
-            var posInContent = this.convertCorrdinate(this.node.position, this.node, this.rootNode);
-            posInContent.x -= this.rootNode.width / 2;
-            posInContent.y -= this.rootNode.height / 2;
-           
-            this.initSelectedSafe();
-
-            for (var i = 0; i < this.COUNT_VERTICAL; i++) {
-                for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
-                    this.safes[i][j].updatePosition(posInContent);
-                }
+    private initContent(): cc.Node {
+        var node = new cc.Node();
+        for (var i = 0; i < this.COUNT_VERTICAL; i++) {
+            this.safes[i] = [];
+            for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
+                var prefab = cc.instantiate(this.safePrefab);
+                var safeObject = prefab.getComponent(SafeObject);
+                safeObject.initPosition(i, j, this.COUNT_HORIZONTAL, this.COUNT_VERTICAL, this.CONTENT_SIZE);
+                node.addChild(prefab);
+                this.safes[i][j] = safeObject;
             }
+        }
+        return node;
+    }
+
+    private callback(scrollview: cc.ScrollView, eventType: cc.ScrollView.EventType, customEventData) {
+        if (eventType == cc.ScrollView.EventType.SCROLLING) {
+            this.onPositionChanged();
         }
 
         if (eventType == cc.ScrollView.EventType.TOUCH_UP) {
@@ -121,25 +119,39 @@ export default class MainScene extends cc.Component {
         }
     }
 
-    scrollToSelected() {
-        var gridPosition = this.selectedSafe.gridPostion;
+    private onPositionChanged() {
+        var posInContent = this.convertCorrdinate(this.node.position, this.node, this.rootNode);
+        posInContent.x -= this.rootNode.width / 2;
+        posInContent.y -= this.rootNode.height / 2;
+
+        this.initSelectedSafe();
+
+        for (var i = 0; i < this.COUNT_VERTICAL; i++) {
+            for (var j = 0; j < this.COUNT_HORIZONTAL; j++) {
+                this.safes[i][j].updatePosition(posInContent);
+            }
+        }
+    }
+
+    private scrollToSelected() {
+        var gridPosition = this.selectedSafe.gridPosition;
         var scrollTarget = new cc.Vec2(gridPosition.x * this.CONTENT_SIZE, (this.COUNT_VERTICAL - gridPosition.y - 1) * this.CONTENT_SIZE);
         this.scrollView.scrollToOffset(scrollTarget, 0.5, true);
     }
 
-    selectSafe(): SafeObject {
+    private selectSafe(): SafeObject {
         var posInContent = this.convertCorrdinate(this.node.position, this.node, this.rootNode);
         var centralNode = this.getNearestSafe(posInContent);
         return centralNode;
     }
 
 
-    convertCorrdinate(position: cc.Vec2, target: cc.Node, to: cc.Node): cc.Vec2 {
+    private convertCorrdinate(position: cc.Vec2, target: cc.Node, to: cc.Node): cc.Vec2 {
         var pointGlob = target.convertToWorldSpace(position);
         return to.convertToNodeSpace(pointGlob);
     }
 
-    getNearestSafe(position: cc.Vec2): SafeObject {
+    private getNearestSafe(position: cc.Vec2): SafeObject {
         var posX = position.x - this.visibleSize.width / 2 + this.CONTENT_SIZE / 2;
         var posY = position.y - this.visibleSize.height / 2 + this.CONTENT_SIZE / 2;
 
