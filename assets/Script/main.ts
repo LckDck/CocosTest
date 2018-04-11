@@ -13,7 +13,7 @@ export default class MainScene extends cc.Component {
 
     COUNT_VERTICAL: number = 9;
     COUNT_HORIZONTAL: number = 9;
-    CONTENT_SIZE: number = 180;
+    CONTENT_SIZE: number = 120;
 
     safes: SafeObject[][] = [[], []];
 

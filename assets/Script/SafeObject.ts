@@ -8,7 +8,7 @@ export default class SafeObject extends cc.Component {
     middlePoint: cc.Vec2;
 
     //BASE_WIDTH: number = 1080;
-    BASE_WIDTH: number = 1080;
+    BASE_WIDTH: number = 1000;
     CONTENT_SIZE: number;
 
 
@@ -16,19 +16,20 @@ export default class SafeObject extends cc.Component {
         var offsetX: number = this.basePos.x - parentPos.x;
         var offsetY: number = this.basePos.y - parentPos.y;
         var ddist: number = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        this.node.setScale(1 - ddist / 1000);
-        this.node.opacity = Math.floor((1 - ddist / 1000) * 255);
+
+        var coef = 1 - ddist / 1000;
+        this.node.setScale(coef * coef);
+        this.node.opacity = Math.floor(coef * coef * 255);
         //this.node.opacity = (ddist > 600) ? 0.2 * (600 - ddist) / (650 - 600) + 0.2 : 1.2 - ddist / 600;
         
-        // var angle: number = Math.atan2(offsetX, offsetY); // угол, тоб потом определить по этому углу другое расстояние
-        // var r: number = 60 * Math.atan(ddist * 9 * 2 / this.BASE_WIDTH); // искажение. это совпадение, что функция тоже атангенс.
-        // var newX: number = r * Math.sin(angle);
-        // var newY: number = r * Math.cos(angle);
-        // this.node.setPositionX(this.node.position.x + newX);
-        // this.node.setPositionY(this.node.position.y + newY);
+        var angle: number = Math.atan2(offsetX, offsetY); // угол, чтобы потом определить по этому углу другое расстояние
+        var r: number = 160 * Math.atan(ddist / this.BASE_WIDTH * 7); // искажение. это совпадение, что функция тоже атангенс.
+        
 
-
-
+        var newX: number = r * Math.sin(angle);
+        var newY: number = r * Math.cos(angle);
+        this.node.setPositionX(this.basePos.x + newX);
+        this.node.setPositionY(this.basePos.y + newY);
         //this.node.active = this.node.opacity > 0.05 && Math.abs(parentPos.x + this.node.position.x) < this.BASE_WIDTH / 2 + this.node.width / 2;
     }
 
@@ -44,19 +45,6 @@ export default class SafeObject extends cc.Component {
 
         this.node.setPosition(this.basePos.x, this.basePos.y);
         this.updatePosition(new cc.Vec2(0, 0));
-        //this.initOffset(new cc.Vec2(0, 0));
-    }
-
-    initOffset(parentPos: cc.Vec2) {
-        var offsetX: number = this.basePos.x + parentPos.x;
-        var offsetY: number = this.basePos.y + parentPos.y;
-        var ddist: number = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        var angle: number = Math.atan2(offsetX, offsetY); // угол, тоб потом определить по этому углу другое расстояние
-        var r: number = 60 * Math.atan(ddist * 9 * 2 / this.BASE_WIDTH); // искажение. это совпадение, что функция тоже атангенс.
-        var newX: number = r * Math.sin(angle);
-        var newY: number = r * Math.cos(angle);
-        this.node.setPositionX(this.node.position.x + newX);
-        this.node.setPositionY(this.node.position.y + newY);
     }
 
     calculateX(index: number): number {
